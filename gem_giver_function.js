@@ -4,7 +4,7 @@
  * Gem grants — same engine, tighter chunk size and slower cadence.
  */
 
-const { RewardEngine, log } = require('./coin_server_editor');
+const { RewardEngine, log } = require('./coin_giver_function');
 
 const engine = new RewardEngine({
   kind: 'gems',
