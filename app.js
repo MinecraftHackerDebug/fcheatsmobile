@@ -123,7 +123,9 @@ async function boot(){
 function fill(){
   const line=$('pos').selectedOptions[0].parentNode.label;
   const list=(roster[line]||{})[$('pos').value]||[];
-  $('who').innerHTML=list.map(p=>'<option value="'+p.id+'">'+p.o+' · '+p.n+'</option>').join('');
+  $('who').innerHTML=list.map(p=>'<option value="'+p.id+'">'+p.o+' · '+p.n+
+    ' · '+(p.p/1e6).toFixed(1)+'M</option>').join('');
+}
 }
 $('pos').onchange=fill;
 $('goCoins').onclick=()=>post('/coins',{amount:+$('coinAmt').value});
