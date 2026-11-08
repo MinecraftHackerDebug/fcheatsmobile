@@ -28,7 +28,7 @@ const DATA_DIR = arg('data-dir', path.join(__dirname, 'data'));
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
-const core = require('./coin_server_editor');
+const core = require('./coin_giver_function');
 const gems = require('./gem_giver_function');
 const players = require('./player_giver_function');
 
