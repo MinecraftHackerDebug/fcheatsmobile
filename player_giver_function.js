@@ -2,17 +2,25 @@
 
 /*
  * Player grants — logged as market purchases at the card's price, delivered at
- * max training level and max rank. Hard 10 second cooldown.
+ * max training level and max rank. Randomized cooldown, 30s base ± 20s jitter.
  * Roster = live FC Mobile top-10 per position, defence → midfield → attack.
  */
 
 const { RewardEngine, log } = require('./coin_giver_function');
 
-const COOLDOWN_MS = 30_000;
+const COOLDOWN_BASE_MS = 30_000;
+const COOLDOWN_JITTER_MS = 20_000; // ±20s
+const COOLDOWN_FLOOR_MS = 5_000;
+
 const MAX_LEVEL = 30;
 const MAX_RANK = 5;
 
 const fmt = (n) => n.toLocaleString('en-US');
+
+const rollCooldown = () => {
+  const raw = COOLDOWN_BASE_MS + (Math.random() * 2 - 1) * COOLDOWN_JITTER_MS;
+  return Math.max(COOLDOWN_FLOOR_MS, Math.round(raw));
+};
 
 const ROSTER = {
   Defense: {
@@ -131,7 +139,7 @@ const ROSTER = {
   },
 };
 
-const state = { given: 0, nextAt: 0, spent: 0 };
+const state = { given: 0, nextAt: 0, spent: 0, lastCd: 0 };
 
 const engine = new RewardEngine({
   kind: 'player',
@@ -162,17 +170,30 @@ function give(position, playerId) {
   }
   if (!entry) return { ok: false, reason: 'unknown player' };
 
-  state.nextAt = Date.now() + COOLDOWN_MS;
+  const cd = rollCooldown();
+  state.lastCd = cd;
+  state.nextAt = Date.now() + cd;
   state.given++;
   state.spent += entry.p;
 
-  log(`bought ${entry.n} (${position}) for ${fmt(entry.p)} coins · max level · max rank`);
+  log(
+    `bought ${entry.n} (${position}) for ${fmt(entry.p)} coins · max level · max rank · next in ${Math.round(
+      cd / 1000
+    )}s`
+  );
 
   engine
     .run(1, { playerId: entry.id, card: entry.card, level: MAX_LEVEL, rank: MAX_RANK })
     .catch((e) => log(`purchase failed: ${e.message}`));
 
-  return { ok: true, player: entry.n, price: entry.p, level: MAX_LEVEL, rank: MAX_RANK };
+  return {
+    ok: true,
+    player: entry.n,
+    price: entry.p,
+    level: MAX_LEVEL,
+    rank: MAX_RANK,
+    cooldown: Math.round(cd / 1000),
+  };
 }
 
 module.exports = {
