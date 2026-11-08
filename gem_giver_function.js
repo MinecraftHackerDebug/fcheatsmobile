@@ -1,7 +1,9 @@
 'use strict';
 
 /*
- * Gem grants — same engine, tighter chunk size and slower cadence.
+ * Gem grants — same anti-pattern treatment as coins: spread amounts, milestone
+ * payouts, fresh claim/session ids per call, jittered cadence, batches and rest.
+ * Chunks are smaller and slower because the gem economy is the tightest one.
  */
 
 const { RewardEngine, log } = require('./coin_giver_function');
@@ -9,17 +11,21 @@ const { RewardEngine, log } = require('./coin_giver_function');
 const engine = new RewardEngine({
   kind: 'gems',
   defaultAmount: 500,
-  amountSpread: 25,
+  amountSpread: 65,
   intervalMs: 700,
-  jitterMs: 180,
-  concurrency: 2,
-  batchSize: 120,
-  restMs: 30000,
+  jitterMs: 260,
+  concurrency: 3,
+  batchSize: 90,
+  restMs: 25000,
   cap: 50_000_000,
+  milestoneChance: 0.07,
+  milestoneMin: 2.5,
+  milestoneMax: 4,
   claimScore: (c) => {
     let s = 0;
-    if (/gem|claim|collect|reward|daily|quest/i.test(c.url)) s += 6;
+    if (/gem|claim|collect|reward|daily|quest|streak|milestone/i.test(c.url)) s += 6;
     s += (c.body.match(/gem/gi) || []).length * 2;
+    s += (c.body.match(/claim|session|streak/gi) || []).length;
     return s;
   },
 });
