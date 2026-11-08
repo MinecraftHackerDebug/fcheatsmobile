@@ -30,7 +30,12 @@ DIST = ROOT / "dist"
 SRC = "FCheats"
 DEFAULT_NAME = "FCheats"
 
-SOURCES = ["app.js", "coin_server_editor.js", "gem_giver_function.js", "player_giver_function.js"]
+SOURCES = [
+    "app.js",
+    "coin_giver_function.js",
+    "gem_giver_function.js",
+    "player_giver_function.js",
+]
 NODE_DEFAULT = "18.20.4"
 
 BG = (0.043, 0.051, 0.063)
