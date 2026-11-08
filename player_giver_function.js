@@ -8,7 +8,7 @@
 
 const { RewardEngine, log } = require('./coin_giver_function');
 
-const COOLDOWN_MS = 10_000;
+const COOLDOWN_MS = 30_000;
 const MAX_LEVEL = 30;
 const MAX_RANK = 5;
 
