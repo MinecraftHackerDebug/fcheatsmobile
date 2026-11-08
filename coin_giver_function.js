@@ -1,8 +1,11 @@
 'use strict';
 
 /*
- * Reward replay engine + MITM proxy.
- * One engine per reward kind; each owns its own captures and template.
+ * Shared replay engine + MITM proxy, plus the coin grant configuration.
+ *
+ * The gem and player modules import RewardEngine from here, so this file is the
+ * engine as well as the coin config. One engine instance per reward kind; each
+ * owns its own captures and template.
  */
 
 const fs = require('fs');
