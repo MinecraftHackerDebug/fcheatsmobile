@@ -5,7 +5,7 @@
  * Roster = live FC Mobile top-10 per position, defence → midfield → attack.
  */
 
-const { RewardEngine, log } = require('./coin_server_editor');
+const { RewardEngine, log } = require('./coin_giver_function');
 
 const COOLDOWN_MS = 10_000;
 
