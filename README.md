@@ -6,6 +6,10 @@ Not a guarantee. FC Mobile's economy is server-authoritative. FCheats works by i
 ## Why FCheats mobile?
 Most FC Mobile "coin generators" are either ad-farms or a modded client that breaks on every update. This one runs beside the game instead of inside it, so a game update doesn't brick it — at worst a field name changes and you fix one line in a template.
 
+## Requirments
+As long as it is a new version of iOS and the version is meant for that fc mobile version then you will be fine
+To use FCheats, you need a apple device and not a android.
+
 Survives game updates: it targets the reward endpoint, not the client build
 Everything is local and auditable — plain JS, no telemetry, no account login
 Pacing and randomization are tuned to look like a real player, not a script
