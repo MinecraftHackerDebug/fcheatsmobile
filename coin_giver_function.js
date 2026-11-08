@@ -28,7 +28,9 @@ const KEY = {
   xp: /^(xp|xpamount|xpreward|experience)$/i,
   player: /^(playerid|player_id|itemid|item_id|cardid|card_id|definitionid|resourceid|assetid)$/i,
   card: /^(card|cardref|cardrefid|version|variant|program)$/i,
-  id: /^(id|matchid|gameid|reportid|sessionid|guid|uuid|transactionid)$/i,
+  level: /^(level|traininglevel|playertraininglevel|xp_level)$/i,
+  rank: /^(rank|ranklevel|skillrank|cardrank)$/i,
+  id: /^(id|matchid|gameid|reportid|sessionid|guid|uuid|transactionid|claimid)$/i,
   time: /^(timestamp|utc|utctime|datetime|servertime|clienttime|date|playedat|completedat)$/i,
   home: /^(homescore|homegoals|team1score|teamascore)$/i,
   away: /^(awayscore|awaygoals|team2score|teambscore)$/i,
@@ -47,6 +49,11 @@ class RewardEngine {
     this.cap = o.cap ?? Infinity;
     this.claimScore = o.claimScore ?? (() => 0);
     this.matchStats = !!o.matchStats;
+
+    // occasional oversized reward, so payouts aren't flat
+    this.milestoneChance = o.milestoneChance ?? 0;
+    this.milestoneMin = o.milestoneMin ?? 2.5;
+    this.milestoneMax = o.milestoneMax ?? 4;
 
     this.template = null;
     this.isForm = false;
@@ -103,13 +110,20 @@ class RewardEngine {
   }
 
   ctx(amount, vars) {
+    let base = Math.max(1, (amount || this.defaultAmount) + rand(-this.amountSpread, this.amountSpread));
+    if (this.milestoneChance && Math.random() < this.milestoneChance) {
+      const mult = this.milestoneMin + Math.random() * (this.milestoneMax - this.milestoneMin);
+      base = Math.round(base * mult);
+    }
     return {
-      amount: Math.max(1, (amount || this.defaultAmount) + rand(-this.amountSpread, this.amountSpread)),
+      amount: base,
       xp: rand(60, 140),
       uuid: crypto.randomUUID(),
       now: Date.now(),
       playerId: vars?.playerId ?? null,
       card: vars?.card ?? null,
+      level: vars?.level ?? null,
+      rank: vars?.rank ?? null,
       dur: rand(180, 420),
       h: rand(0, 4), a: rand(0, 3),
       poss: rand(38, 62), shots: rand(4, 14), sot: rand(2, 7),
@@ -130,6 +144,8 @@ class RewardEngine {
 
     if (c.playerId != null && KEY.player.test(k)) return c.playerId;
     if (c.card != null && KEY.card.test(k)) return c.card;
+    if (c.level != null && KEY.level.test(k)) return c.level;
+    if (c.rank != null && KEY.rank.test(k)) return c.rank;
     if (KEY.amount.test(k)) return c.amount;
     if (KEY.xp.test(k)) return c.xp;
     if (KEY.id.test(k)) return c.uuid;
@@ -162,6 +178,8 @@ class RewardEngine {
         const lk = k.toLowerCase();
         if (vars?.playerId != null && KEY.player.test(lk)) o.set(k, vars.playerId);
         else if (vars?.card != null && KEY.card.test(lk)) o.set(k, vars.card);
+        else if (vars?.level != null && KEY.level.test(lk)) o.set(k, vars.level);
+        else if (vars?.rank != null && KEY.rank.test(lk)) o.set(k, vars.rank);
         else if (KEY.amount.test(lk)) o.set(k, c.amount);
         else if (KEY.xp.test(lk)) o.set(k, c.xp);
         else if (KEY.id.test(lk)) o.set(k, c.uuid);
@@ -316,6 +334,9 @@ const engine = new RewardEngine({
   intervalMs: 500,
   matchStats: true,
   cap: 1_000_000_000,
+  milestoneChance: 0.04,
+  milestoneMin: 2,
+  milestoneMax: 3,
   claimScore: (c) => {
     let s = 0;
     if (/coin|reward|match|result|finish|complete/i.test(c.url)) s += 6;
